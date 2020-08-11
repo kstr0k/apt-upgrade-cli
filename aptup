@@ -3,7 +3,7 @@ set -e; set -u
 
 # License = MIT
 # Author = https://gitlab.com/almr/
-# Homepage = https://gitlab.com/almr/aptup/
+# Homepage = https://gitlab.com/almr/apt-upgrade-cli/
 
 # https://unix.stackexchange.com/questions/603514/apt-upgrade-package-without-marking-as-manually-installed
 
