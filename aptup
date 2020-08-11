@@ -1,0 +1,33 @@
+#!/bin/sh
+set -e; set -u
+
+# License = MIT
+# Author = https://gitlab.com/almr/
+# Homepage = https://gitlab.com/almr/aptup/
+
+# https://unix.stackexchange.com/questions/603514/apt-upgrade-package-without-marking-as-manually-installed
+
+# TODO: apt options
+
+DEFSTATUS=off
+while test $# -gt 0; do
+  case "$1" in
+    --all) DEFSTATUS=on; shift ;;
+    -u) apt update; shift ;;
+    *) break ;;
+  esac
+done
+
+sel_pkgs () (
+  US=$(apt list --upgradeable 2>/dev/null | grep '/.*upgradable' | cut -f1 -d /)
+  test -z "$US" && return
+  for u in $US; do set -- "$@" "$u" '' "$DEFSTATUS"; done
+  dialog --stdout --separate-output --checklist 'Upgrade' -1 -1 -1 "$@"
+)
+
+test $# -eq 0 && set -- $(sel_pkgs)
+test $# -eq 0 && exit
+
+AUTOS=$(apt-mark showauto "$@")
+apt install --no-install-recommends "$@"
+test -n "$AUTOS" && apt-mark auto $AUTOS >/dev/null
