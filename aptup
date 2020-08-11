@@ -13,7 +13,8 @@ DEFSTATUS=off
 while test $# -gt 0; do
   case "$1" in
     --all) DEFSTATUS=on; shift ;;
-    -u) apt update; shift ;;
+    --help) printf "Args: [-u|--update] [--all] [pkg ...]\n"; exit 0 ;;
+    -u|--update) apt update; shift ;;
     *) break ;;
   esac
 done
