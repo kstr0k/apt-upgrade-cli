@@ -23,7 +23,7 @@ sel_pkgs () (
   US=$(apt list --upgradeable 2>/dev/null | grep '/.*upgradable' | cut -f1 -d /)  # apt is not scriptable by its own confession; format: zsh/focal 5.8-3ubuntu1 i386
   test -z "$US" && return
   for u in $US; do set -- "$@" "$u" '' "$DEFSTATUS"; done
-  dialog --stdout --separate-output --checklist 'Upgrade' -1 -1 -1 "$@"
+  dialog --stdout --separate-output --checklist 'Upgrade' 0 0 0 "$@"
 )
 
 test $# -eq 0 && set -- $(sel_pkgs)
