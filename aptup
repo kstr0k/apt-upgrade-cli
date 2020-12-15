@@ -27,8 +27,9 @@ sel_pkgs () (
 )
 
 test $# -eq 0 && set -- $(sel_pkgs)
-test $# -eq 0 && exit
+test $# -eq 0 && { echo 'No upgrades available' 1>&2; exit; }
 
 AUTOS=$(apt-mark showauto "$@")
-apt install --no-install-recommends "$@"
+clear
+(set -x; apt install --no-install-recommends "$@")
 test -n "$AUTOS" && apt-mark auto $AUTOS >/dev/null
