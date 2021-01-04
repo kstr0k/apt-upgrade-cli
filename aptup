@@ -13,14 +13,16 @@ DEFSTATUS=off
 while test $# -gt 0; do
   case "$1" in
     --all) DEFSTATUS=on; shift ;;
-    --help) printf "Args: [-u|--update] [--all] [pkg ...]\n"; exit 0 ;;
-    -u|--update) apt update; shift ;;
+    --help|-h) printf "Args: [-u|--update] [--all] [pkg ...]\n"; exit 0 ;;
+    --update|-u) apt update; shift ;;
+    --) shift; break ;;
+    -*) echo "Unknown: $1"; exit 1 ;;
     *) break ;;
   esac
 done
 
 sel_pkgs () (
-  US=$(apt list --upgradeable 2>/dev/null | grep '/.*upgradable' | cut -f1 -d /)  # apt is not scriptable by its own confession; format: zsh/focal 5.8-3ubuntu1 i386
+  US=$(apt list --upgradeable 2>/dev/null | perl -wlnE 'print $1 if m@^([^/]+)/.*\bupgradable @')  # apt is not scriptable by its own confession; format: zsh/focal 5.8-3ubuntu1 i386
   test -z "$US" && return
   for u in $US; do set -- "$@" "$u" '' "$DEFSTATUS"; done
   dialog --stdout --separate-output --checklist 'Upgrade' 0 0 0 "$@"
