@@ -21,14 +21,23 @@ while test $# -gt 0; do
   esac
 done
 
-sel_pkgs () (
-  US=$(apt list --upgradeable 2>/dev/null | perl -wlnE 'print $1 if m@^([^/]+)/.*\bupgradable @')  # apt is not scriptable by its own confession; format: zsh/focal 5.8-3ubuntu1 i386
+upgable2pkgs () (
+  perl -wlnE 'print $1 if m@^([^/]+)/.*\bupgradable @'  # apt is not scriptable by its own confession; format: linux-doc/focal-updates 5.4.0-59.65 all [upgradable from: 5.4.0-58.64]
+)
+
+dialog_sel_pkgs () (
+  US=$(upgable2pkgs)
   test -z "$US" && return
   for u in $US; do set -- "$@" "$u" '' "$DEFSTATUS"; done
   dialog --stdout --separate-output --checklist 'Upgrade' 0 0 0 "$@"
 )
 
-test $# -eq 0 && set -- $(sel_pkgs)
+sel_pkgs () (
+  apt list --upgradeable 2>/dev/null |
+    dialog_sel_pkgs
+)
+
+test $# -eq 0 && set -- $(sel_pkgs)  # TODO: expand patterns if $# > 0
 test $# -eq 0 && { echo 'No upgrades available' 1>&2; exit; }
 
 AUTOS=$(apt-mark showauto "$@")
