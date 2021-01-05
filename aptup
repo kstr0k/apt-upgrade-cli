@@ -1,5 +1,4 @@
-#!/bin/sh
-set -e; set -u
+#!/bin/bash -eu
 
 # License = MIT
 # Author = https://gitlab.com/almr/
@@ -10,33 +9,49 @@ set -e; set -u
 # TODO: apt options
 
 DEFSTATUS=off
+BACKEND=dialog
 while test $# -gt 0; do
   case "$1" in
-    --all) DEFSTATUS=on; shift ;;
-    --help|-h) printf "Args: [-u|--update] [--all] [pkg ...]\n"; exit 0 ;;
-    --update|-u) apt update; shift ;;
+    --all|-a) shift; DEFSTATUS=on ;;
+    --help|-h) printf "Args: [-u|--update] [--all] [--editor|-e] [pkg ...]\n"; exit 0 ;;
+    --update|-u) shift; apt update ;;
+    --editor|-e) shift; BACKEND=edit ;;
     --) shift; break ;;
     -*) echo "Unknown: $1"; exit 1 ;;
     *) break ;;
   esac
 done
 
-upgable2pkgs () (
-  perl -wlnE 'print $1 if m@^([^/]+)/.*\bupgradable @'  # apt is not scriptable by its own confession; format: linux-doc/focal-updates 5.4.0-59.65 all [upgradable from: 5.4.0-58.64]
-)
+
+UPGPCRE='^([^/]+)/.*\bupgradable '  # apt isn't scriptable by its own confession; format: linux-doc/focal-updates 5.4.0-59.65 all [upgradable from: 5.4.0-58.64]
+
+upgable2pkgs () {
+  perl -wlnE 'print $1 if m@'"$UPGPCRE"'@'
+}
 
 dialog_sel_pkgs () (
   US=$(upgable2pkgs)
-  test -z "$US" && return
+  test -z "$US" && exit 0
   for u in $US; do set -- "$@" "$u" '' "$DEFSTATUS"; done
-  dialog --stdout --separate-output --checklist 'Upgrade' 0 0 0 "$@"
+  dialog --stdout --separate-output --checklist 'Upgrade' 0 0 0 "$@" 0<&5 1>&6  # though dialog seems to figure out the tty by itself
 )
 
-sel_pkgs () (
-  apt list --upgradeable 2>/dev/null |
-    dialog_sel_pkgs
+edit_sel_pkgs () (
+  USF=$(mktemp)
+  trap 'rm -f "$USF"' EXIT
+  if test "off" = "$DEFSTATUS"; then pfx='#'; else pfx=' '; fi
+  sed -e "s/^/$pfx/" >"$USF"
+  test -s "$USF" || exit 0
+  $EDITOR "$USF" 0<&5 1>&6
+  grep -v '^#' "$USF" | upgable2pkgs
 )
 
+sel_pkgs () {
+  apt list --upgradeable "$@" 2>/dev/null | grep -P "$UPGPCRE" |
+    ${BACKEND}_sel_pkgs
+}
+
+exec 5<&0 6>&1
 test $# -eq 0 && set -- $(sel_pkgs)  # TODO: expand patterns if $# > 0
 test $# -eq 0 && { echo 'No upgrades available' 1>&2; exit; }
 
