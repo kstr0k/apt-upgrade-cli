@@ -52,7 +52,8 @@ sel_pkgs () {
 }
 
 exec 5<&0 6>&1
-test $# -eq 0 && set -- $(sel_pkgs)  # TODO: expand patterns if $# > 0
+
+set -- $(sel_pkgs "$@")
 test $# -eq 0 && { echo 'No upgrades available' 1>&2; exit; }
 
 AUTOS=$(apt-mark showauto "$@")
