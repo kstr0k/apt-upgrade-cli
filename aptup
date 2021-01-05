@@ -10,12 +10,14 @@
 
 DEFSTATUS=off
 BACKEND=dialog
+OREC=--no-install-recommends
 while test $# -gt 0; do
   case "$1" in
     --all|-a) shift; DEFSTATUS=on ;;
     --help|-h) printf "Args: [-u|--update] [--all] [--editor|-e] [pkg ...]\n"; exit 0 ;;
     --update|-u) shift; apt update ;;
     --editor|-e) shift; BACKEND=edit ;;
+    --rec) shift; OREC= ;;
     --) shift; break ;;
     -*) echo "Unknown: $1"; exit 1 ;;
     *) break ;;
@@ -58,5 +60,5 @@ test $# -eq 0 && { echo 'No upgrades available' 1>&2; exit; }
 
 AUTOS=$(apt-mark showauto "$@")
 clear
-(set -x; apt install --no-install-recommends "$@")
+(set -x; apt install $OREC "$@")
 test -n "$AUTOS" && apt-mark auto $AUTOS >/dev/null
