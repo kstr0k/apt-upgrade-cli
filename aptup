@@ -35,12 +35,14 @@ dialog_sel_pkgs () (
   US=$(upgable2pkgs)
   test -z "$US" && exit 0
   for u in $US; do set -- "$@" "$u" '' "$DEFSTATUS"; done
-  dialog --stdout --separate-output --checklist 'Upgrade' 0 0 0 "$@" 0<&5 1>&6  # though dialog seems to figure out the tty by itself
+  # 2>&1 to captured stdout (dialog defaults to --stderr); then restore tty stdin/out
+  # simpler to use --stdout so dialog reopens the tty (but docs warn against)
+  dialog --separate-output --checklist 'Upgrade' 0 0 0 "$@" 2>&1 0<&5 1>&6
 )
 
 edit_sel_pkgs () (
   USF=$(mktemp)
-  trap 'rm -f "$USF"' EXIT
+  trap 'rm -f "$USF"' EXIT  # bashism
   if test "off" = "$DEFSTATUS"; then pfx='#'; else pfx=' '; fi
   sed -e "s/^/$pfx/" >"$USF"
   test -s "$USF" || exit 0
