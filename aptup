@@ -13,12 +13,13 @@ BACKEND=dialog
 OREC=--no-install-recommends
 while test $# -gt 0; do
   case "$1" in
+    --) shift; break ;;
+    --verbose|-v) shift; set -x ;;
     --all|-a) shift; DEFSTATUS=on ;;
-    --help|-h) printf "Args: [-u|--update] [--all] [--editor|-e] [pkg ...]\n"; exit 0 ;;
+    --help|-h) shift; printf "Args: [-u|--update] [--all] [--editor|-e] [pkg ...]\n"; exit 0 ;;
     --update|-u) shift; apt update ;;
     --editor|-e) shift; BACKEND=edit ;;
     --rec) shift; OREC= ;;
-    --) shift; break ;;
     -*) echo "Unknown: $1"; exit 1 ;;
     *) break ;;
   esac
@@ -46,7 +47,7 @@ edit_sel_pkgs () (
   if test "off" = "$DEFSTATUS"; then pfx='#'; else pfx=' '; fi
   sed -e "s/^/$pfx/" >"$USF"
   test -s "$USF" || exit 0
-  $EDITOR "$USF" 0<&5 1>&6
+  sensible-editor "$USF" 0<&5 1>&6  # we're on Debian for sure
   grep -v '^#' "$USF" | upgable2pkgs
 )
 
