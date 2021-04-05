@@ -41,13 +41,18 @@ dialog_sel_pkgs () (
   dialog --separate-output --checklist 'Upgrade' 0 0 0 "$@" 2>&1 0<&5 1>&6
 )
 
+_detect_editor () {
+  declare -a ew=( ${EDITOR:-} )
+  if which "${ew[0]:-}" &>/dev/null; then printf '%s' "$EDITOR"; return 0; fi
+  which sensible-editor || which nano || which editor || which vim || which vi
+}
 edit_sel_pkgs () (
   USF=$(mktemp)
   trap 'rm -f "$USF"' EXIT  # bashism
   if test "off" = "$DEFSTATUS"; then pfx='#'; else pfx=' '; fi
   sed -e "s/^/$pfx/" >"$USF"
   test -s "$USF" || exit 0
-  sensible-editor "$USF" 0<&5 1>&6  # we're on Debian for sure
+  $(_detect_editor) "$USF" 0<&5 1>&6  # though we're on Debian for sure
   grep -v '^#' "$USF" | upgable2pkgs
 )
 
