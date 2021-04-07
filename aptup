@@ -8,25 +8,30 @@
 
 # TODO: apt options
 
+usage () {
+  printf '%s\n' 'Args: [-u|--update] [--all] [--editor|-e] [pkg ...]'
+  exit 0
+}
+parse_args () {
 DEFSTATUS=off
 BACKEND=dialog
 OREC=--no-install-recommends
+UPGPCRE='^([^/]+)/.*\bupgradable '  # apt isn't scriptable by its own confession; format: linux-doc/focal-updates 5.4.0-59.65 all [upgradable from: 5.4.0-58.64]
 while test $# -gt 0; do
   case "$1" in
     --) shift; break ;;
-    --verbose|-v) shift; set -x ;;
+    -h|--help) shift; usage; exit 0 ;;
+    -v|--verbose) shift; set -x ;;
     --all|-a) shift; DEFSTATUS=on ;;
-    --help|-h) shift; printf "Args: [-u|--update] [--all] [--editor|-e] [pkg ...]\n"; exit 0 ;;
     --update|-u) shift; apt update ;;
     --editor|-e) shift; BACKEND=edit ;;
-    --rec) shift; OREC= ;;
+    --rec|--with-install-recommends) shift; OREC= ;;
     -*) echo "Unknown: $1"; exit 1 ;;
     *) break ;;
   esac
 done
-
-
-UPGPCRE='^([^/]+)/.*\bupgradable '  # apt isn't scriptable by its own confession; format: linux-doc/focal-updates 5.4.0-59.65 all [upgradable from: 5.4.0-58.64]
+ARGV=( "$@" )
+}
 
 upgable2pkgs () {
   perl -wlnE 'print $1 if m@'"$UPGPCRE"'@'
@@ -63,6 +68,7 @@ sel_pkgs () {
 
 exec 5<&0 6>&1
 
+parse_args "$@"; set -- "${ARGV[@]}"
 set -- $(sel_pkgs "$@")
 test $# -eq 0 && { echo 'No upgrades available' 1>&2; exit; }
 
