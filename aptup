@@ -1,4 +1,5 @@
-#!/bin/bash -eu
+#!/bin/bash
+set -eu
 
 # License = MIT
 # Author = https://gitlab.com/almr/
@@ -18,16 +19,17 @@ BACKEND=dialog
 OREC=--no-install-recommends
 UPGPCRE='^([^/]+)/.*\bupgradable '  # apt isn't scriptable by its own confession; format: linux-doc/focal-updates 5.4.0-59.65 all [upgradable from: 5.4.0-58.64]
 while test $# -gt 0; do
-  case "$1" in
-    --) shift; break ;;
-    -h|--help) shift; usage; exit 0 ;;
-    -v|--verbose) shift; set -x ;;
-    --all|-a) shift; DEFSTATUS=on ;;
-    --update|-u) shift; apt update ;;
-    --editor|-e) shift; BACKEND=edit ;;
-    --rec|--with-install-recommends) shift; OREC= ;;
-    -*) echo "Unknown: $1"; exit 1 ;;
-    *) break ;;
+  local arg=$1; shift
+  case "$arg" in
+    --) break ;;
+    -h|--help) usage; exit 0 ;;
+    -v|--verbose) set -x ;;
+    --all|-a) DEFSTATUS=on ;;
+    --update|-u) apt update ;;
+    --editor|-e) BACKEND=edit ;;
+    --rec|--with-install-recommends) OREC= ;;
+    -*) echo "Unknown: $arg"; exit 1 ;;
+    *) set -- "$arg" "$@"; break ;;
   esac
 done
 ARGV=( "$@" )
