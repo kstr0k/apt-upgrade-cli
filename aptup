@@ -48,7 +48,7 @@ dialog_sel_pkgs () (
   dialog --separate-output --checklist 'Upgrade' 0 0 0 "$@" 2>&1 0<&5 1>&6
 )
 
-_set_editor_env () {  # set $EDITOR to app-preferred, or existing $EDITOR, or detected
+__set_editor_env () {  # set $EDITOR to app-preferred, or existing $EDITOR, or detected
   EDITOR=${APTUP_EDITOR:-${EDITOR:-$(which sensible-editor || which nano || which editor || which vim || which vi)}}
 }
 edit_sel_pkgs () (
@@ -57,7 +57,7 @@ edit_sel_pkgs () (
   if test 'off' = "$DEFSTATUS"; then pfx='#'; else pfx=' '; fi
   sed -e "s/^/$pfx/" >"$USF"
   test -s "$USF" || exit 0
-  _set_editor_env; $EDITOR "$USF" 0<&5 1>&6  # though we're on Debian for sure
+  __set_editor_env; $EDITOR "$USF" 0<&5 1>&6  # though we're on Debian for sure
   grep -v '^#' "$USF" | upgable2pkgs
 )
 
