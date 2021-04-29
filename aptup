@@ -15,7 +15,7 @@ usage () {
 }
 parse_args () {
 DEFSTATUS=off
-BACKEND=dialog
+BACKEND=edit
 OREC=--no-install-recommends
 UPGPCRE='^([^/]+)/.*\bupgradable '  # apt isn't scriptable by its own confession; format: linux-doc/focal-updates 5.4.0-59.65 all [upgradable from: 5.4.0-58.64]
 while test $# -gt 0; do
@@ -27,6 +27,7 @@ while test $# -gt 0; do
     --all|-a) DEFSTATUS=on ;;
     --update|-u) apt update ;;
     --editor|-e) BACKEND=edit ;;
+    --dialog) BACKEND=dialog ;;
     --rec|--with-install-recommends) OREC= ;;
     -*) echo "Unknown: $arg"; exit 1 ;;
     *) set -- "$arg" "$@"; break ;;
