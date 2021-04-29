@@ -36,7 +36,7 @@ ARGV=( "$@" )
 }
 
 upgable2pkgs () {
-  perl -wlnE 'print $1 if m@'"$UPGPCRE"'@'
+  sed -Ene 's@.*'"$UPGPCRE"'.*@\1@p'
 }
 
 dialog_sel_pkgs () (
