@@ -63,6 +63,7 @@ edit_sel_pkgs () (
 )
 
 sel_pkgs () {
+  [[ $- = *x* ]] || echo 1>&2 'Running apt list --upgradeable ...'
   apt list --upgradeable "$@" 2>/dev/null | grep -P "$UPGPCRE" |
     ${BACKEND}_sel_pkgs
 }
@@ -73,7 +74,8 @@ parse_args "$@"; set -- "${ARGV[@]}"
 set -- $(sel_pkgs "$@")
 test $# -eq 0 && { echo 'No upgrades available' 1>&2; exit; }
 
+[[ $- = *x* ]] || echo 1>&2 'Getting `apt-mark showauto` packages ...'
 AUTOS=$(apt-mark showauto "$@")
-clear
+test "$BACKEND" != 'dialog' || clear
 (set -x; apt install $OREC "$@")
 test -n "$AUTOS" && apt-mark auto $AUTOS >/dev/null
