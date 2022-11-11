@@ -9,17 +9,19 @@ set -eu
 
 # TODO: apt options
 
+_G_apt_conf=
+
 usage () {
-  printf '%s\n' 'Args: [-u|--update] [--all] [--editor|-e] [pkg ...]'
+  printf '%s\n' 'Args: [-u|--update] [--all] [--editor|-e] [-o APT_KEY=VAL ..] [pkg ..]'
   exit 0
 }
 parse_args () {
 DEFSTATUS=off
 BACKEND=edit
-OREC=--no-install-recommends
+OREC='-o APT::Install-Recommends=0'
 UPGPCRE='^([^/]+)/.*\bupgradable '  # apt isn't scriptable by its own confession; format: linux-doc/focal-updates 5.4.0-59.65 all [upgradable from: 5.4.0-58.64]
-while test $# -gt 0; do
-  local arg=$1; shift
+while test "$#" != 0; do
+  local arg; arg=$1; shift
   case "$arg" in
     --) break ;;
     -h|--help) usage; exit 0 ;;
@@ -28,7 +30,9 @@ while test $# -gt 0; do
     --update|-u) apt update ;;
     --editor|-e) BACKEND=edit ;;
     --dialog) BACKEND=dialog ;;
-    --rec|--with-install-recommends) OREC= ;;
+    --rec|--with-install-recommends) OREC='-o APT::Install-Recommends=1' ;;
+    -o) _G_apt_conf="$_G_apt_conf -o $1"; shift ;;
+    -t) arg=$1; shift; set -- -o "APT::Default-Release=$arg" "$@" ;;
     -*) echo "Unknown: $arg"; exit 1 ;;
     *) set -- "$arg" "$@"; break ;;
   esac
@@ -64,7 +68,7 @@ edit_sel_pkgs () (
 
 sel_pkgs () {
   [[ $- = *x* ]] || echo 1>&2 'Running apt list --upgradeable ...'
-  apt list --upgradeable "$@" 2>/dev/null | grep -P "$UPGPCRE" |
+  apt list --upgradeable $OREC $_G_apt_conf "$@" 2>/dev/null | grep -P "$UPGPCRE" |
     ${BACKEND}_sel_pkgs
 }
 
@@ -77,5 +81,5 @@ test $# -eq 0 && { echo 'No upgrades available' 1>&2; exit; }
 [[ $- = *x* ]] || echo 1>&2 'Getting `apt-mark showauto` packages ...'
 AUTOS=$(apt-mark showauto "$@")
 test "$BACKEND" != 'dialog' || clear
-(set -x; apt install $OREC "$@")
+(set -x; apt install $OREC $_G_apt_conf "$@")
 test -n "$AUTOS" && apt-mark auto $AUTOS >/dev/null
