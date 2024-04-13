@@ -15,7 +15,19 @@ exec 5<&0 6>&1 7>&2  # original std{in,out,err}
 _G_apt_conf=
 
 usage () {
-  printf '%s\n' 'Args: [-u|--update] [--all] [--editor|-e] [-o APT_KEY=VAL ..] [pkg ..]'
+cat<<'EOMSG'
+Usage: aptup [OPTION]... [PKG]...
+
+Options:
+  -u, --update        run apt update first
+  --all               pre-select all packages for update
+  --dialog            use "dialog" as front-end
+  --editor, -e        use editor as front-end (default)
+  -o APT_KEY=VAL ..   configure apt
+
+*Editor selection*
+  aptup tries $APTUP_EDITOR, $EDITOR, Debian sensible-editor, then nano, vim and vi.
+EOMSG
   exit 0
 }
 parse_args () {
