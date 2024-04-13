@@ -26,7 +26,7 @@ Options:
   -o APT_KEY=VAL ..   configure apt
 
 *Editor selection*
-  aptup tries $APTUP_EDITOR, $EDITOR, Debian sensible-editor, then nano, vim and vi.
+  aptup tries $APTUP_EDITOR, $EDITOR, Debian sensible-editor, nano, vim.
 EOMSG
   exit 0
 }
@@ -72,7 +72,7 @@ __set_editor_env () {  # set $EDITOR to app-preferred, or existing $EDITOR, or d
   EDITOR=${APTUP_EDITOR:-${EDITOR:-$(command -v sensible-editor || command -v nano || command -v editor || command -v vim || command -v vi)}}
 }
 edit_sel_pkgs () (
-  USF=$(mktemp)
+  USF=$(mktemp ${TMPDIR:-/tmp}/aptup_edit_pkgs.XXXXXX)
   trap 'exit 1' INT QUIT TERM HUP
   trap 'rm -f "$USF"' EXIT
   if test 'off' = "$DEFSTATUS"; then pfx='#'; else pfx=' '; fi
