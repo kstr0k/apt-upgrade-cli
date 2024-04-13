@@ -54,7 +54,7 @@ dialog_sel_pkgs () (
 )
 
 __set_editor_env () {  # set $EDITOR to app-preferred, or existing $EDITOR, or detected
-  EDITOR=${APTUP_EDITOR:-${EDITOR:-$(which sensible-editor || which nano || which editor || which vim || which vi)}}
+  EDITOR=${APTUP_EDITOR:-${EDITOR:-$(command -v sensible-editor || command -v nano || command -v editor || command -v vim || command -v vi)}}
 }
 edit_sel_pkgs () (
   USF=$(mktemp)
