@@ -29,7 +29,7 @@ while test "$#" != 0; do
     (--all|-a) DEFSTATUS=on ;;
     (--update|-u) apt update ;;
     (--editor|-e) BACKEND=edit ;;
-    (--dialog) BACKEND=dialog ;;
+    (--dialog) ! command -v dialog >/dev/null || BACKEND=dialog ;;
     (--rec|--with-install-recommends) OREC='-o APT::Install-Recommends=1' ;;
     (-o) _G_apt_conf="$_G_apt_conf -o $1"; shift ;;
     (-t) arg=$1; shift; set -- -o "APT::Default-Release=$arg" "$@" ;;
