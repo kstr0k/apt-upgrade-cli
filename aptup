@@ -1,5 +1,8 @@
-#!/bin/bash
-set -eu
+#!/bin/sh
+#shellcheck shell=dash
+
+set -ue
+exec 5<&0 6>&1 7>&2  # original std{in,out,err}
 
 # License = MIT
 # Author = https://gitlab.com/almr/
@@ -37,7 +40,7 @@ while test "$#" != 0; do
     (*) set -- "$arg" "$@"; break ;;
   esac
 done
-ARGV=( "$@" )
+main "$@"
 }
 
 upgable2pkgs () {
@@ -58,7 +61,8 @@ __set_editor_env () {  # set $EDITOR to app-preferred, or existing $EDITOR, or d
 }
 edit_sel_pkgs () (
   USF=$(mktemp)
-  trap 'rm -f "$USF"' EXIT  # bashism
+  trap 'exit 1' INT QUIT TERM HUP
+  trap 'rm -f "$USF"' EXIT
   if test 'off' = "$DEFSTATUS"; then pfx='#'; else pfx=' '; fi
   sed -e "s/^/$pfx/" >"$USF"
   test -s "$USF" || exit 0
@@ -72,9 +76,7 @@ sel_pkgs () {
     "${BACKEND}_sel_pkgs"
 }
 
-exec 5<&0 6>&1
-
-parse_args "$@"; set -- "${ARGV[@]}"
+main() {
 set -- $(sel_pkgs "$@")
 test $# -eq 0 && { echo 'No upgrades available' 1>&2; exit; }
 
@@ -83,3 +85,6 @@ AUTOS=$(apt-mark showauto "$@")
 test "$BACKEND" != 'dialog' || clear
 (set -x; apt install $OREC $_G_apt_conf "$@")
 test -n "$AUTOS" && apt-mark auto $AUTOS >/dev/null
+}
+
+parse_args "$@"
