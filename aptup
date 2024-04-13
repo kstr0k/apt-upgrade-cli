@@ -23,18 +23,18 @@ UPGPCRE='^([^/]+)/.*\bupgradable '  # apt isn't scriptable by its own confession
 while test "$#" != 0; do
   local arg; arg=$1; shift
   case "$arg" in
-    --) break ;;
-    -h|--help) usage; exit 0 ;;
-    -v|--verbose) set -x ;;
-    --all|-a) DEFSTATUS=on ;;
-    --update|-u) apt update ;;
-    --editor|-e) BACKEND=edit ;;
-    --dialog) BACKEND=dialog ;;
-    --rec|--with-install-recommends) OREC='-o APT::Install-Recommends=1' ;;
-    -o) _G_apt_conf="$_G_apt_conf -o $1"; shift ;;
-    -t) arg=$1; shift; set -- -o "APT::Default-Release=$arg" "$@" ;;
-    -*) echo "Unknown: $arg"; exit 1 ;;
-    *) set -- "$arg" "$@"; break ;;
+    (--) break ;;
+    (-h|--help) usage; exit 0 ;;
+    (-v|--verbose) set -x ;;
+    (--all|-a) DEFSTATUS=on ;;
+    (--update|-u) apt update ;;
+    (--editor|-e) BACKEND=edit ;;
+    (--dialog) BACKEND=dialog ;;
+    (--rec|--with-install-recommends) OREC='-o APT::Install-Recommends=1' ;;
+    (-o) _G_apt_conf="$_G_apt_conf -o $1"; shift ;;
+    (-t) arg=$1; shift; set -- -o "APT::Default-Release=$arg" "$@" ;;
+    (-*) echo "Unknown: $arg"; exit 1 ;;
+    (*) set -- "$arg" "$@"; break ;;
   esac
 done
 ARGV=( "$@" )
