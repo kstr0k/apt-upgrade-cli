@@ -19,7 +19,7 @@ parse_args () {
 DEFSTATUS=off
 BACKEND=edit
 OREC='-o APT::Install-Recommends=0'
-UPGPCRE='^([^/]+)/.*\bupgradable '  # apt isn't scriptable by its own confession; format: linux-doc/focal-updates 5.4.0-59.65 all [upgradable from: 5.4.0-58.64]
+UPGRE='^[[:space:]]*\([^#/][^/]*\)/.*\[upgradable '  # apt isn't scriptable by its own confession; format: linux-doc/focal-updates 5.4.0-59.65 all [upgradable from: 5.4.0-58.64]
 while test "$#" != 0; do
   local arg; arg=$1; shift
   case "$arg" in
@@ -41,7 +41,7 @@ ARGV=( "$@" )
 }
 
 upgable2pkgs () {
-  sed -Ene 's@.*'"$UPGPCRE"'.*@\1@p'
+  sed -ne 's@'"$UPGRE"'.*@\1@p'
 }
 
 dialog_sel_pkgs () (
@@ -68,8 +68,8 @@ edit_sel_pkgs () (
 
 sel_pkgs () {
   case "$-" in (*x*) ;; (*) echo 1>&2 'Running apt list --upgradeable ...' ;; esac
-  apt list --upgradeable $OREC $_G_apt_conf "$@" 2>/dev/null | grep -P "$UPGPCRE" |
-    ${BACKEND}_sel_pkgs
+  LC_ALL=C.UTF-8 LANG= LANGUAGE= apt list --upgradeable $OREC $_G_apt_conf "$@" 2>/dev/null | grep "$UPGRE" |
+    "${BACKEND}_sel_pkgs"
 }
 
 exec 5<&0 6>&1
